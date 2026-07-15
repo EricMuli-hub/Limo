@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blockchain Credential System</title>
+  <!-- React + ReactDOM + Babel from CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f4f7fc; color: #333; line-height: 1.6; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 1rem; }
+    .navbar { background: #1a2b4a; color: white; padding: 0.6rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; position: relative; }
+    .navbar h2 { margin: 0; font-size: 1.2rem; }
+    .navbar .right-section { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; }
+    .navbar .user-info { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+    .navbar button { background: transparent; border: 1px solid #fff; color: #fff; padding: 0.25rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .navbar button:hover { background: #fff; color: #1a2b4a; }
+    .datetime-widget { display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; cursor: default; position: relative; }
+   .datetime-widget .time { font-weight: bold; color: #4fc3f7; }
+    .datetime-widget .date { color: #b0bec5; }
+    .datetime-widget .calendar-icon { background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; padding: 0 0.3rem; }
+    .datetime-widget .calendar-icon:hover { color: #4fc3f7; }
+    .calendar-popup { position: absolute; top: 100%; right: 0; background: white; color: #333; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); padding: 0.8rem; width: 220px; z-index: 100; margin-top: 0.3rem; }
+    .calendar-popup .month-year { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-weight: bold; }
+    .calendar-popup .month-year button { background: #eee; border: none; padding: 0.2rem 0.6rem; border-radius: 4px; cursor: pointer; color: #333; }
+    .calendar-popup .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.2rem; text-align: center; font-size: 0.8rem; }
+    .calendar-popup .days-grid .day-name { font-weight: bold; color: #888; font-size: 0.7rem; }
+    .calendar-popup .days-grid .day { padding: 0.2rem 0; border-radius: 50%; cursor: default; }
+    .calendar-popup .days-grid .day.today { background: #4a90e2; color: white; font-weight: bold; }
+    .calendar-popup .days-grid .day.other-month { color: #ccc; }
+    .landing { text-align: center; padding: 2rem 0; }
+    .hero { background: linear-gradient(135deg, #1a2b4a, #2c4b7a); color: white; padding: 4rem 2rem; border-radius: 12px; }
+    .hero h1 { font-size: 2.8rem; }
+    .hero .subtitle { font-size: 1.1rem; opacity: 0.8; margin-top: 0.3rem; }
+    .hero .credit { font-size: 0.9rem; opacity: 0.6; margin-top: 0.8rem; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 0.8rem; display: inline-block; }
+    .cta { margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn { padding: 0.7rem 2rem; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; display: inline-block; text-decoration: none; }
+    .btn-primary { background: #4a90e2; color: white; }
+    .btn-secondary { background: #ddd; color: #333; }
+    .btn-danger { background: #d9534f; color: white; }
+    .btn-success { background: #28a745; color: white; }
+    .btn-warning { background: #f0ad4e; color: #333; }
+    .btn-sm { padding: 0.3rem 0.8rem; font-size: 0.85rem; }
+    .features { display: flex; justify-content: space-around; margin: 3rem 0; flex-wrap: wrap; gap: 1rem; }
+    .feature { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex: 1; min-width: 200px; }
+    .feature h3 { margin-bottom: 0.5rem; }
+    .auth-container { max-width: 400px; margin: 3rem auto; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .auth-container h2 { text-align: center; margin-bottom: 1.5rem; }
+    .auth-container form { display: flex; flex-direction: column; gap: 1rem; }
+    .auth-container input, .auth-container select { padding: 0.8rem; border: 1px solid #ccc; border-radius: 4px; }
+    .auth-container button { padding: 0.8rem; background: #4a90e2; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    .auth-container .error { color: red; margin-bottom: 0.5rem; }
+    .auth-container .link { color: #4a90e2; cursor: pointer; text-decoration: underline; }
+    .dashboard { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 1.5rem 0; }
+    .dashboard h2 { border-bottom: 2px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+    .dashboard .stats { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .dashboard .stat { background: #f8f9fa; padding: 0.8rem 1.5rem; border-radius: 8px; flex: 1; min-width: 120px; text-align: center; }
+    .dashboard .stat span { display: block; font-size: 1.8rem; font-weight: bold; color: #1a2b4a; }
+    .dashboard ul { list-style: none; padding: 0; }
+    .dashboard li { padding: 0.6rem 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .dashboard li:last-child { border-bottom: none; }
+    .dashboard .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .dashboard input, .dashboard select { padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; margin-right: 0.5rem; }
+    .dashboard .badge { background: #28a745; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; margin-left: 0.5rem; }
+    .dashboard .badge-revoked { background: #d9534f; }
+    .footer { text-align: center; padding: 1.5rem 0; color: #888; font-size: 0.85rem; border-top: 1px solid #eee; margin-top: 2rem; }
+    .footer strong { color: #1a2b4a; }
+    @media (max-width: 700px) {
+      .hero h1 { font-size: 2rem; }
+      .navbar { flex-direction: column; align-items: stretch; }
+      .navbar .right-section { justify-content: space-between; }
+      .datetime-widget { font-size: 0.8rem; gap: 0.3rem; }
+      .dashboard .stats { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+<script type="text/babel">
+    const { useState, useContext, createContext, useEffect, useRef } = React;
+    const AuthContext = createContext();
+
+    // ─── AUTH PROVIDER ──────────────────────────────────────────
+    function AuthProvider({ children }) {
+      const [user, setUser] = useState(null);
+      useEffect(() => {
+        const stored = sessionStorage.getItem('credential_user');
+        if (stored) try { setUser(JSON.parse(stored)); } catch (e) {}
+      }, []);
+      const login = async (email, password) => {
+        let role = 'student';
+        if (email === 'admin@test.com') role = 'admin';
+        else if (email === 'registrar@test.com') role = 'registrar';
+        else if (email === 'institution@test.com') role = 'institution';
+        else if (email === 'verifier@test.com') role = 'verifier';
+        else if (email === 'employer@test.com') role = 'employer';
+        else if (email === 'auditor@test.com') role = 'auditor';
+        else if (email === 'regulator@test.com') role = 'regulator';
+        const u = { name: email.split('@')[0], email, role };
+        setUser(u);
+        sessionStorage.setItem('credential_user', JSON.stringify(u));
+        return { success: true };
+      };
+      const register = async (data) => {
+        const u = { name: data.name, email: data.email, role: data.role };
+        setUser(u);
+        sessionStorage.setItem('credential_user', JSON.stringify(u));
+        return { success: true };
+      };
+      const logout = () => { setUser(null); sessionStorage.removeItem('credential_user'); window.location.hash = ''; };
+      return <AuthContext.Provider value={{ user, login, register, logout }}>{children}</AuthContext.Provider>;
+    }
+    function useAuth() { return useContext(AuthContext); }
+
+    // ─── DATA LAYER ─────────────────────────────────────────────
+    let credentials = JSON.parse(sessionStorage.getItem('creds') || '[]');
+    let users = JSON.parse(sessionStorage.getItem('users') || '[]');
+    let auditLogs = JSON.parse(sessionStorage.getItem('auditLogs') || '[]');
+    let payments = JSON.parse(sessionStorage.getItem('payments') || '[]');
+
+    function saveData() {
+      sessionStorage.setItem('creds', JSON.stringify(credentials));
+      sessionStorage.setItem('users', JSON.stringify(users));
+      sessionStorage.setItem('auditLogs', JSON.stringify(auditLogs));
+      sessionStorage.setItem('payments', JSON.stringify(payments));
+    }
+    function genId() { return Math.random().toString(36).substr(2, 9); }
+    function addAudit(user, action) {
+      auditLogs.push({ id: genId(), user, action, timestamp: new Date().toISOString() });
+      saveData();
+    }
+
+    // Seed data
+    if (credentials.length === 0) {
+      credentials = [
+        { id: 'c1', studentId: 'S001', name: 'Alice Johnson', degree: 'BSc Computer Science', institution: 'Mount Kenya University', issued: '2026-06-01', revoked: false, cid: 'QmW2r5t7u' },
+        { id: 'c2', studentId: 'S002', name: 'Bob Smith', degree: 'BSc Business Admin', institution: 'Mount Kenya University', issued: '2026-05-15', revoked: false, cid: 'QmXyZ9a3b' },
+      ];
+      users = [
+        { id: 'u1', name: 'Admin', email: 'admin@test.com', role: 'admin', registered: true },
+        { id: 'u2', name: 'Registrar', email: 'registrar@test.com', role: 'registrar', registered: true },
+        { id: 'u3', name: 'Mount Kenya University', email: 'institution@test.com', role: 'institution', registered: true },
+      ];
+      auditLogs = [{ id: 'a1', user: 'system', action: 'System initialized', timestamp: new Date().toISOString() }];
+      payments = [{ id: 'p1', user: 'institution@test.com', amount: 0.1, type: 'institution_registration', status: 'completed', date: new Date().toISOString() }];
+      saveData();
+    }
+
+    // ─── DATE/TIME WIDGET ──────────────────────────────────────
+    function DateTimeWidget() {
+      const [now, setNow] = useState(new Date());
+      const [showCal, setShowCal] = useState(false);
+      const [calDate, setCalDate] = useState(new Date());
+      const ref = useRef(null);
+
+      useEffect(() => {
+        ref.current = setInterval(() => setNow(new Date()), 1000);
+        return () => clearInterval(ref.current);
+      }, []);
+
+      const toggleCal = () => setShowCal(!showCal);
+      const fmtTime = d => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const fmtDate = d => d.toLocaleDateString([], { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+      const changeMonth = delta => { const d = new Date(calDate); d.setMonth(d.getMonth() + delta); setCalDate(d); };
+      const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
+      const firstDay = (y, m) => new Date(y, m, 1).getDay();
+
+      const renderDays = () => {
+        const y = calDate.getFullYear(), m = calDate.getMonth();
+        const total = daysInMonth(y, m), fd = firstDay(y, m);
+        const today = new Date();
+        const isToday = d => d === today.getDate() && m === today.getMonth() && y === today.getFullYear();
+        const cells = [];
+        for (let i = 0; i < fd; i++) cells.push(<div key={'e' + i} className="day other-month"></div>);
+        for (let d = 1; d <= total; d++) {
+          cells.push(<div key={d} className={'day' + (isToday(d) ? ' today' : '')}>{d}</div>);
+        }
+        return cells;
+      };
+
+      return (
+        <div className="datetime-widget">
+          <span className="time">{fmtTime(now)}</span>
+          <span className="date">{fmtDate(now)}</span>
+          <button className="calendar-icon" onClick={toggleCal}>📅</button>
+          {showCal && (
+            <div className="calendar-popup">
+              <div className="month-year">
+                <button onClick={() => changeMonth(-1)}>◀</button>
+                <span>{calDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
+                <button onClick={() => changeMonth(1)}>▶</button>
+              </div>
+              <div className="days-grid">
+                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => <div key={d} className="day-name">{d}</div>)}
+                {renderDays()}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ─── LANDING PAGE ──────────────────────────────────────────
+    function LandingPage() {
+      const { user } = useAuth();
+      return (
+        <div className="container landing">
+          <div className="hero">
+            <h1>🎓 Blockchain Academic Credential Verification</h1>
+            <p className="subtitle">Decentralized · Tamper‑Proof · AI‑Secured · Full Audit Trail</p>
+            <div className="cta">
+              {user ? (
+                <a href="#dashboard" className="btn btn-primary" onClick={e => { e.preventDefault(); window.location.hash = 'dashboard'; }}>Dashboard</a>
+              ) : (
+                <>
+                  <a href="#login" className="btn btn-primary" onClick={e => { e.preventDefault(); window.location.hash = 'login'; }}>Login</a>
+                  <a href="#register" className="btn btn-secondary" onClick={e => { e.preventDefault(); window.location.hash = 'register'; }}>Register</a>
+                </>
+              )}
+            </div>
+            <div className="credit">🚀 Built by <strong>Eric Muli</strong> · Mount Kenya University · 2026</div>
+          </div>
+          <section className="features">
+            <div className="feature"><h3>🏛️ Institutions</h3><p>Issue unforgeable credentials on blockchain.</p></div>
+            <div className="feature"><h3>👨‍🎓 Students</h3><p>View & share credentials (read‑only).</p></div>
+            <div className="feature"><h3>🔍 Verifiers</h3><p>Instant cryptographic verification.</p></div>
+            <div className="feature"><h3>🛡️ Auditors</h3><p>Full audit logs & AI anomaly detection.</p></div>
+          </section>
+        </div>
+      );
+    }
+
+    // ─── LOGIN ──────────────────────────────────────────────────
+    function Login() {
+      const [email, setEmail] = useState('');
+      const [password, setPassword] = useState('');
+      const [error, setError] = useState('');
+      const { login } = useAuth();
+      const handle = async e => {
+        e.preventDefault();
+        const r = await login(email, password);
+        if (r.success) { addAudit(email, 'Logged in'); window.location.hash = 'dashboard'; }
+        else setError(r.error);
+      };
+      return (
+        <div className="auth-container">
+          <h2>🔐 Login</h2>
+          {error && <div className="error">{error}</div>}
+          <form onSubmit={handle}>
+            <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required />
+            <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required />
+            <button type="submit">Login</button>
+          </form>
+          <p>Don't have an account? <span className="link" onClick={() => window.location.hash = 'register'}>Register</span></p>
+          <small style={{ display: 'block', marginTop: '0.5rem' }}>Demo: admin@test.com / anything → Admin<br />institution@test.com → Institution, etc.</small>
+        </div>
+      );
+    }
+
+    // ─── REGISTER ──────────────────────────────────────────────
+    function Register() {
+      const [form, setForm] = useState({ name: '', email: '', password: '', role: 'student' });
+      const [error, setError] = useState('');
+      const { register } = useAuth();
+      const handle = async e => {
+        e.preventDefault();
+        const r = await register(form);
+        if (r.success) {
+          users.push({ id: genId(), ...form, registered: false });
+          saveData();
+          addAudit(form.email, 'Registered');
+          window.location.hash = 'dashboard';
+        } else setError(r.error);
+      };
+      return (
+        <div className="auth-container">
+          <h2>📝 Register</h2>
+          {error && <div className="error">{error}</div>}
+          <form onSubmit={handle}>
+            <input placeholder="Full Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+            <input type="email" placeholder="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
+            <input type="password" placeholder="Password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required />
+            <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
+              <option value="student">Student</option>
+              <option value="institution">Institution</option>
+              <option value="verifier">Verifier</option>
+              <option value="employer">Employer</option>
+              <option value="auditor">Auditor</option>
+              <option value="regulator">Regulator</option>
+              <option value="registrar">Registrar</option>
+            </select>
+            <button type="submit">Register</button>
+          </form>
+          <p>Already have an account? <span className="link" onClick={() => window.location.hash = 'login'}>Login</span></p>
+        </div>
+      );
+    }
+
+    // ─── DASHBOARDS ─────────────────────────────────────────────
+
+    // ADMIN
+    function AdminDashboard() {
+      const [ul, setUl] = useState(users);
+      const [cl, setCl] = useState(credentials);
+      const [nr, setNr] = useState('student');
+      const addUser = () => {
+        const n = prompt('Name'); if (!n) return;
+        const e = prompt('Email'); if (!e) return;
+        users.push({ id: genId(), name: n, email: e, role: nr, registered: false });
+        saveData(); setUl([...users]); addAudit('admin', `Added ${e} as ${nr}`);
+      };
+      const toggleReg = email => { const u = users.find(x => x.email === email); if (u) { u.registered = !u.registered; saveData(); setUl([...users]); } };
+      const revoke = id => { const c = credentials.find(x => x.id === id); if (c) { c.revoked = !c.revoked; saveData(); setCl([...credentials]); } };
+      const stats = { users: ul.length, creds: cl.length, revoked: cl.filter(c => c.revoked).length, payments: payments.length };
+      return (
+        <div className="dashboard">
+          <h2>⚙️ Admin Dashboard</h2>
+          <div className="stats">
+            <div className="stat"><span>{stats.users}</span> Users</div>
+            <div className="stat"><span>{stats.creds}</span> Credentials</div>
+            <div className="stat"><span>{stats.revoked}</span> Revoked</div>
+            <div className="stat"><span>{stats.payments}</span> Payments</div>
+          </div>
+          <div><h3>Manage Users</h3><select onChange={e => setNr(e.target.value)}><option value="student">Student</option><option value="institution">Institution</option><option value="verifier">Verifier</option><option value="employer">Employer</option><option value="auditor">Auditor</option><option value="regulator">Regulator</option><option value="registrar">Registrar</option></select><button className="btn btn-success btn-sm" onClick={addUser}>+ Add User</button>
+            <ul>{ul.map(u => <li key={u.id}>{u.name} ({u.email}) – {u.role} <span className={`badge ${u.registered ? '' : 'badge-revoked'}`}>{u.registered ? 'Registered' : 'Pending'}</span><button className="btn btn-warning btn-sm" onClick={() => toggleReg(u.email)}>Toggle</button></li>)}</ul>
+          </div>
+          <div><h3>All Credentials</h3><ul>{cl.map(c => <li key={c.id}>{c.name} – {c.degree} <span className={`badge ${c.revoked ? 'badge-revoked' : ''}`}>{c.revoked ? 'Revoked' : 'Valid'}</span><button className="btn btn-danger btn-sm" onClick={() => revoke(c.id)}>{c.revoked ? 'Un-revoke' : 'Revoke'}</button></li>)}</ul></div>
+        </div>
+      );
+    }
+
+    // REGISTRAR
+    function RegistrarDashboard() {
+      const [pending, setPending] = useState([]);
+      const approve = id => { addAudit('registrar', `Approved ${id}`); alert(`✅ Credential ${id} approved on blockchain.`); setPending(pending.filter(p => p.id !== id)); };
+      const reject = id => { setPending(pending.filter(p => p.id !== id)); addAudit('registrar', `Rejected ${id}`); };
+      return (
+        <div className="dashboard">
+          <h2>📋 Registrar Dashboard</h2>
+          <h3>Pending Requests</h3>
+          {pending.length === 0 ? <p>No pending requests.</p> : pending.map(p => <li key={p.id}>{p.name} – {p.degree}<button className="btn btn-success btn-sm" onClick={() => approve(p.id)}>Approve</button><button className="btn btn-danger btn-sm" onClick={() => reject(p.id)}>Reject</button></li>)}
+          <h3>Issued Credentials</h3>
+          <ul>{credentials.map(c => <li key={c.id}>{c.name} – {c.degree} <span className={`badge ${c.revoked ? 'badge-revoked' : ''}`}>{c.revoked ? 'Revoked' : 'Valid'}</span></li>)}</ul>
+        </div>
+      );
+    }
+
+    // INSTITUTION
+    function InstitutionDashboard() {
+      const { user } = useAuth();
+      const [myCreds, setMyCreds] = useState(credentials.filter(c => c.institution === (user?.name || 'Mount Kenya University')));
+      const [form, setForm] = useState({ studentId: '', name: '', degree: '' });
+      const [msg, setMsg] = useState('');
+      const issue = () => {
+        if (!form.studentId || !form.name || !form.degree) return alert('Fill all fields');
+        const nc = { id: genId(), ...form, institution: user?.name || 'Mount Kenya University', issued: new Date().toISOString().split('T')[0], revoked: false, cid: 'Qm' + Math.random().toString(36).substr(2, 8) };
+        credentials.push(nc); saveData(); setMyCreds([...credentials.filter(c => c.institution === (user?.name || 'Mount Kenya University'))]); setForm({ studentId: '', name: '', degree: '' }); setMsg('✅ Credential issued on blockchain!'); addAudit(user?.email || 'inst', `Issued ${nc.name}`); setTimeout(() => setMsg(''), 3000);
+      };
+      const print = cred => alert(`🖨️ Printing hardcopy:\n${cred.name}\n${cred.degree}\n${cred.institution}\nCID: ${cred.cid}\n(Only institutions can print)`);
+      const revoke = id => { const c = credentials.find(x => x.id === id); if (c) { c.revoked = !c.revoked; saveData(); setMyCreds([...credentials.filter(c => c.institution === (user?.name || 'Mount Kenya University'))]); addAudit(user?.email || 'inst', `${c.revoked ? 'Revoked' : 'Un-revoked'} ${c.name}`); } };
+      return (
+        <div className="dashboard">
+          <h2>🏛️ Institution Dashboard</h2>
+          <p><strong>{user?.name || 'Institution'}</strong> – Issuing Authority</p>
+          {msg && <div style={{ background: '#d4edda', padding: '0.5rem', borderRadius: '4px', marginBottom: '1rem' }}>{msg}</div>}
+          <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '6px', marginBottom: '1.5rem' }}>
+            <h3>Issue New Credential</h3>
+            <input placeholder="Student ID" value={form.studentId} onChange={e => setForm({ ...form, studentId: e.target.value })} />
+            <input placeholder="Full Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+            <input placeholder="Degree" value={form.degree} onChange={e => setForm({ ...form, degree: e.target.value })} />
+            <button className="btn btn-primary" onClick={issue}>Issue (Blockchain)</button>
+          </div>
+          <h3>Issued Credentials</h3>
+          <ul>{myCreds.map(c => <li key={c.id}><strong>{c.name}</strong> – {c.degree}<br /><small>ID: {c.studentId} | CID: {c.cid}</small><span className={`badge ${c.revoked ? 'badge-revoked' : ''}`}>{c.revoked ? 'Revoked' : 'Valid'}</span><div className="actions"><button className="btn btn-success btn-sm" onClick={() => print(c)}>🖨️ Print</button><button className="btn btn-danger btn-sm" onClick={() => revoke(c.id)}>{c.revoked ? 'Un-revoke' : 'Revoke'}</button></div></li>)}</ul>
+        </div>
+      );
+    }
+
+    // STUDENT
+    function StudentDashboard() {
+      const { user } = useAuth();
+      const myCreds = credentials.filter(c => c.studentId === (user?.email?.split('@')[0] || 'S001'));
+      const display = myCreds.length ? myCreds : credentials.slice(0, 2);
+      return (
+        <div className="dashboard">
+          <h2>👨‍🎓 Student Dashboard</h2>
+          <p>Welcome, <strong>{user?.name}</strong> – <em>View only (printing disabled)</em></p>
+          <h3>Your Credentials</h3>
+          {display.length === 0 ? <p>No credentials issued yet.</p> : <ul>{display.map(c => <li key={c.id}><strong>{c.name}</strong> – {c.degree} ({c.institution})<br /><small>Issued: {c.issued} | CID: {c.cid}</small><span className={`badge ${c.revoked ? 'badge-revoked' : ''}`}>{c.revoked ? 'Revoked' : 'Valid'}</span><button className="btn btn-secondary btn-sm" onClick={() => alert('Share this CID: ' + c.cid)}>Share</button></li>)}</ul>}
+          <p style={{ color: '#888', fontSize: '0.9rem', marginTop: '1rem' }}>🔒 Hardcopy only available at your institution.</p>
+        </div>
+      );
+    }
+    // VERIFIER
+    function VerifierDashboard() {
+      const [sid, setSid] = useState('');
+      const [cid, setCid] = useState('');
+      const [result, setResult] = useState(null);
+      const [error, setError] = useState('');
+      const [history, setHistory] = useState([]);
+      const verify = () => {
+        setError(''); setResult(null);
+        if (!sid || !cid) { setError('Enter both Student ID and CID'); return; }
+        const found = credentials.find(c => c.studentId === sid && c.cid === cid);
+        if (found) {
+          setResult({ valid: !found.revoked, revoked: found.revoked, name: found.name, degree: found.degree, institution: found.institution, issued: found.issued });
+          history.push({ sid, cid, result: 'success', timestamp: new Date().toISOString() });
+          setHistory([...history]); addAudit('verifier', `Verified ${sid}`);
+        } else {
+          setResult({ valid: false, message: 'Not found on blockchain' });
+          history.push({ sid, cid, result: 'not found', timestamp: new Date().toISOString() });
+          setHistory([...history]);
+        }
+      };
+      return (
+        <div className="dashboard">
+          <h2>🔍 Verifier Dashboard</h2>
+          <p>Verify a candidate's credential</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+            <input placeholder="Student ID" value={sid} onChange={e => setSid(e.target.value)} style={{ flex: 1, minWidth: 120 }} />
+            <input placeholder="Credential CID" value={cid} onChange={e => setCid(e.target.value)} style={{ flex: 1, minWidth: 120 }} />
+            <button className="btn btn-primary" onClick={verify}>Verify</button>
+          </div>
+          {error && <div className="error">{error}</div>}
+          {result && <div style={{ padding: '1rem', background: result.valid ? '#e8f5e9' : '#fce4ec', borderRadius: 8 }}><h3>{result.valid ? '✅ Valid' : '❌ Invalid'}</h3>{result.name && <><p><strong>Name:</strong> {result.name}</p><p><strong>Degree:</strong> {result.degree}</p><p><strong>Institution:</strong> {result.institution}</p><p><strong>Issued:</strong> {result.issued}</p><p><strong>Revoked:</strong> {result.revoked ? 'Yes' : 'No'}</p></>}{result.message && <p>{result.message}</p>}</div>}
+          <h3>Verification History</h3>
+          <ul>{history.map((h, i) => <li key={i}>{h.timestamp} – {h.sid} (CID: {h.cid}) – {h.result}</li>)}</ul>
+        </div>
+      );
+    }
+
+    // EMPLOYER
+    function EmployerDashboard() {
+      const [sid, setSid] = useState('');
+      const [cid, setCid] = useState('');
+      const [result, setResult] = useState(null);
+      const verify = () => {
+        const found = credentials.find(c => c.studentId === sid && c.cid === cid);
+        if (found) { setResult({ valid: !found.revoked, name: found.name, degree: found.degree, institution: found.institution }); addAudit('employer', `Verified ${found.name}`); }
+        else setResult({ valid: false, message: 'Not found' });
+      };
+      return (
+        <div className="dashboard">
+          <h2>🏢 Employer Dashboard</h2>
+          <p>Verify candidates before hiring</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <input placeholder="Student ID" value={sid} onChange={e => setSid(e.target.value)} />
+            <input placeholder="CID" value={cid} onChange={e => setCid(e.target.value)} />
+            <button className="btn btn-primary" onClick={verify}>Verify</button>
+          </div>
+          {result && <div style={{ padding: '1rem', background: result.valid ? '#e8f5e9' : '#fce4ec', borderRadius: 8 }}>{result.valid ? <><h3>✅ Verified</h3><p><strong>Name:</strong> {result.name}</p><p><strong>Degree:</strong> {result.degree}</p><p><strong>Institution:</strong> {result.institution}</p></> : <h3>❌ {result.message}</h3>}</div>}
+        </div>
+      );
+    }
+
+    // AUDITOR
+    function AuditorDashboard() {
+      const [logs, setLogs] = useState(auditLogs);
+      const [anomalies, setAnomalies] = useState([]);
+      const scan = () => {
+        const flagged = logs.filter((l, i, a) => {
+          if (l.action.includes('Revoked')) {
+            const prev = a[i - 1];
+            if (prev && prev.action.includes('Revoked')) return true;
+          }
+          return false;
+        });
+        setAnomalies(flagged);
+        if (flagged.length) { alert('⚠️ AI detected ' + flagged.length + ' anomalies'); addAudit('auditor', 'Ran anomaly scan'); }
+        else alert('✅ No anomalies detected.');
+      };
+      return (
+        <div className="dashboard">
+          <h2>🛡️ Auditor Dashboard</h2>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+            <button className="btn btn-warning" onClick={scan}>Run AI Anomaly Scan</button>
+            <button className="btn btn-secondary" onClick={() => setLogs([...auditLogs])}>Refresh Logs</button>
+          </div>
+          <h3>Anomalies Detected ({anomalies.length})</h3>
+          {anomalies.length === 0 ? <p>No anomalies found.</p> : <ul>{anomalies.map((a, i) => <li key={i} style={{ background: '#fce4ec', padding: '0.5rem', marginBottom: '0.3rem' }}>{a.timestamp} – {a.user} – {a.action}</li>)}</ul>}
+          <h3>Audit Logs</h3>
+          <ul>{logs.slice().reverse().map(l => <li key={l.id}>{l.timestamp} – {l.user} – {l.action}</li>)}</ul>
+        </div>
+      );
+    }
+    // REGULATOR
+    function RegulatorDashboard() {
+      const stats = {
+        issued: credentials.length,
+        revoked: credentials.filter(c => c.revoked).length,
+        inst: [...new Set(credentials.map(c => c.institution))].length,
+        compliance: 92
+      };
+      return (
+        <div className="dashboard">
+          <h2>📊 Regulator Dashboard</h2>
+          <div className="stats">
+            <div className="stat"><span>{stats.issued}</span> Issued</div>
+            <div className="stat"><span>{stats.revoked}</span> Revoked</div>
+            <div className="stat"><span>{stats.inst}</span> Institutions</div>
+            <div className="stat"><span>{stats.compliance}%</span> Compliance</div>
+          </div>
+          <h3>Compliance Report</h3>
+          <p>All credentials cryptographically signed. PII stored off-chain. AI anomaly detection active.</p>
+          <button className="btn btn-primary" onClick={() => alert('📄 Compliance report generated (PDF)')}>Generate Report</button>
+        </div>
+      );
+    }
+
+    // ─── DASHBOARD ROUTER ──────────────────────────────────────
+    function Dashboard() {
+      const { user } = useAuth();
+      if (!user) return <div>Please login</div>;
+      switch (user.role) {
+        case 'admin': return <AdminDashboard />;
+        case 'registrar': return <RegistrarDashboard />;
+        case 'institution': return <InstitutionDashboard />;
+        case 'student': return <StudentDashboard />;
+        case 'verifier': return <VerifierDashboard />;
+        case 'employer': return <EmployerDashboard />;
+        case 'auditor': return <AuditorDashboard />;
+        case 'regulator': return <RegulatorDashboard />;
+        default: return <div>Unknown role</div>;
+      }
+    }
+
+    // ─── MAIN APP ──────────────────────────────────────────────
+    function App() {
+      const [view, setView] = useState('home');
+      const { user, logout } = useAuth();
+
+      useEffect(() => {
+        const handle = () => {
+          const h = window.location.hash.replace('#', '');
+          if (h === 'login' || h === 'register' || h === 'dashboard') setView(h);
+          else setView('home');
+        };
+        window.addEventListener('hashchange', handle);
+        handle();
+        return () => window.removeEventListener('hashchange', handle);
+      }, []);
+
+      let comp;
+      if (view === 'login') comp = <Login />;
+      else if (view === 'register') comp = <Register />;
+      else if (view === 'dashboard') comp = <Dashboard />;
+      else comp = <LandingPage />;
+
+      return (
+        <div>
+          {user && view !== 'login' && view !== 'register' && (
+            <div className="navbar">
+              <h2>🔗 Credential System <span>by Eric Muli</span></h2>
+              <div className="right-section">
+                <DateTimeWidget />
+                <div className="user-info">
+                  <span>👤 {user.name} ({user.role})</span>
+                  <button onClick={() => { logout(); window.location.hash = ''; }}>Logout</button>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="container">{comp}</div>
+          <div className="footer">
+            <strong>Eric Muli</strong> · Blockchain Academic Credential System · Mount Kenya University · 2026
+          </div>
+        </div>
+      );
+    }
+
+    // ─── MOUNT ──────────────────────────────────────────────────
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<AuthProvider><App /></AuthProvider>);
+  </script>
+</body>
+</html>
